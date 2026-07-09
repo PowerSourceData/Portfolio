@@ -33,14 +33,9 @@ This repository is strictly organized to showcase production-ready, clean, and d
 *   [**`01_sql_architecture/`**](./01_sql_architecture/)  
     *Advanced T-SQL & Virtual Warehousing.* Blueprints focused on modern logical architectures within Virtual Data Warehouses using layered schemas (`Staging`, `Transformation`, `Presentation`). Showcases include high-performance views utilizing analytical window functions (`PARTITION BY`), complex multi-table `JOIN` operations, `UNION ALL` data consolidation, and robust time-intelligence logic based on central date dimensions.
 *   [**`02_powerbi_models/`**](./02_powerbi_models/)  
-    *Semantic modeling & DAX.* Saved using the modern **Power BI Project (.pbip)** format[cite: 1]. This exposes the structural TMDL/JSON code, allowing full code review of complex DAX measures, time intelligence, and relationship logic[cite: 1].
+    *Semantic modeling & DAX.* Saved using the modern **Power BI Project (.pbip)** format. This exposes the structural TMDL/JSON code, allowing full code review of complex DAX measures, time intelligence, and relationship logic.
 *   [**`03_python_etl/`**](./03_python_etl/)  
     *Data pipelining.* Modular Python scripts for programmatic data extraction (APIs), transformation (Polars/Pandas), and orchestration tasks.
 *   [**`.github/`**](./.github/)  
     *AI Governance & Prompts.* Contains my custom system rules, agent prompts, and environment instructions to enforce strict coding and architecture standards across LLMs and GitHub Copilot.
 
----
-
-## 📬 Connect with Me
-*   **Portfolio Website:** *[Link to your upcoming website]*
-*   **LinkedIn:** *[Your LinkedIn Profile]*
