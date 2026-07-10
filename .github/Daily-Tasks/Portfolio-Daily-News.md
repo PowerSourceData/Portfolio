@@ -10,7 +10,7 @@ By utilizing a rolling 30-day window, the agent ensures a consistent, high-convi
 
 ## System Prompt
 
-```markdown
+
 # SYSTEM PROMPT: DYNAMIC FUNDAMENTAL AGENT (EQ-RESEARCH – 30D)
 
 ## 1. DEFINITIONAL BOUNDARY FRAMEWORK (FILTER)
