@@ -1,0 +1,603 @@
+Execute the following steps for the automatic preparation of the Power BI model block-by-block and in the specified order.
+
+Strictly follow all instructions and conditions of each individual step. Solve all tasks exclusively using the tools provided by the "Power BI Modeling MCP Server" extension.
+
+If an action cannot be executed with the available tools, output an error message immediately and stop the entire execution. Do not interpret or expand the instructions, but execute them exactly as specified.
+
+## IMPORTANT: Full Refresh Definition
+
+When the command "Full Refresh" occurs in a step, it ALWAYS means the following:
+
+1. **Call mcp_powerbi-model_partition_operations:**
+   - Operation: "Refresh"
+   - RefreshType: "Full"
+   - For all relevant partitions of the affected table(s)
+
+2. **Call mcp_powerbi-model_table_operations:**
+   - Operation: "Refresh"
+   - References: List of all affected tables
+   - This updates all partitions of the specified tables
+
+3. **Call mcp_powerbi-model_model_operations:**
+   - Operation: "Refresh"
+   - RefreshType: "Full"
+   - This updates the entire model, including all calculations
+
+**Important:** All three tools must be called sequentially to guarantee a complete refresh.
+The sequence is: Partition → Table → Model.
+
+
+
+## BLOCK 1: Rename Tables
+
+## Tools: table_operations, transaction_operations
+
+## Prerequisite: Connection to the model must be established
+
+
+
+### Step 1: List All Tables
+
+Call table_operations → list and create a complete list of all tables in the model.
+
+
+
+### Step 2: Classify Each Table
+
+Check for each table name whether it contains one of the following terms (case-insensitive):
+  - Fact table: "fact", "fakt", "facts", "fakten", "fct", "fkt"
+  - Dimension table: everything else
+
+If no clear assignment is possible → ask the user before proceeding.
+
+
+
+### Step 3: Calculate Target Names
+
+For each table:
+
+1. Identify and remove existing prefixes/terms such as:
+   "fact_", "fakt_", "fct_", "fkt_", "dim_", "fact", "fakt", "fct", "fkt", "dim"
+   (regardless of whether at the beginning, with or without underscore, upper or lower case)
+
+2. Split the remaining name into words based on spaces, underscores, and PascalCase boundaries.
+
+3. If the first word is only a functional area, schema, or source prefix
+   (for example, "Purchasing", "Sales", or similar area names)
+   and is followed by at least one other word,
+   remove this first word.
+
+4. If the first two remaining words are identical (case-insensitive), keep only one instance.
+
+5. Write the remaining name in PascalCase without spaces and underscores.
+
+6. Prepend the correct prefix:
+   - Fact table → "fact_" + cleaned name
+   - Dimension table → "dim_" + cleaned name
+
+Examples:
+  "Dim Kunde"         → "dim_Kunde"
+  "DimKunde"          → "dim_Kunde"
+  "fact_sales data"   → "fact_SalesData"
+  "Fakt Umsatz"       → "fact_Umsatz"
+  "Purchasing fact_PurchaseOrders" → "fact_PurchaseOrders"
+  "Sales fact_Sales"  → "fact_Sales"
+  "Purchasing ShipMethod" → "dim_ShipMethod"
+  "Purchasing Vendor" → "dim_Vendor"
+  "Sales"             → Ask user
+  "fct_order details" → "fact_OrderDetails"
+
+
+
+### Step 4: Open Transaction
+
+Call transaction_operations → begin.
+
+
+
+### Step 5: Execute Renaming
+
+Call table_operations → rename for each table with the calculated target name.
+Execute all renames sequentially without prompt or summary.
+
+
+
+### Step 6: Commit or Rollback
+
+If all renames in Step 5 were successful:
+  → Call transaction_operations → commit
+
+If at least one rename failed:
+  → Call transaction_operations → rollback
+  → Stop the entire execution
+  → Output which rename failed
+
+
+
+### Step 7: Update Data
+Full Refresh
+
+
+
+### Step 8: Validation
+
+Call table_operations → list again and check if all table names match the target format:
+  - Dimensions: start with "dim_" followed by PascalCase
+  - Fact tables: start with "fact_" followed by PascalCase
+
+Output a brief overview:
+  - Tables successfully renamed: X
+  - Tables skipped (pending user input): X
+  - Errors: X
+
+
+
+## BLOCK 1 COMPLETED
+
+Only proceed to Block 2 if commit was successful.
+
+
+
+## BLOCK 2: Select Primary Keys
+
+## Tools: table_operations, column_operations
+
+## Prerequisite: Block 1 must be successfully completed
+
+
+
+### Step 1: List All Dimension Tables
+
+Call table_operations → list and filter for all tables whose names begin with "dim_".
+Exclude any table named "dim_Date" from this selection.
+
+
+
+### Step 2: Select Primary Key per Table
+
+Perform the following steps for each dimension table sequentially:
+
+  2a. Call column_operations → list for the current table to retrieve all available column names.
+
+  2b. Analyze the column names and determine a proposal for the primary key. Prefer columns whose names contain one of the following terms (case-insensitive):
+        "id", "key", "nr", "nummer", "code", "schlüssel"
+
+  2c. Present the user with the following selection:
+      "Table: [TableName]
+       Proposed Primary Key: [ColumnName]
+       All available columns:
+         1. [Column 1]
+         2. [Column 2]
+         3. [Column 3]
+         ...
+       Please select the desired column by number
+       or confirm the proposal with Enter."
+
+  2d. Wait for the user's response before proceeding to the next table.
+
+  2e. Store the selection internally as:
+      [TableName] → [selected primary key]
+
+
+
+### Step 3: Final Overview
+
+Output an overview of all dimension tables:
+
+  | Table   | Primary Key | Status |
+  |---------|-------------|--------|
+  | dim_X   | ID          | ✓      |
+
+
+
+## BLOCK 2 COMPLETED
+
+Only proceed to Block 3 if all dimension tables have been successfully assigned a primary key.
+
+
+
+## BLOCK 3: Create Relationships Between Dimensions and Fact Tables
+
+## Tools: relationship_operations, table_operations, column_operations
+
+## Prerequisite: Block 2 must be successfully completed
+
+
+
+### Step 1: List and Categorize Tables
+
+Call table_operations → list and divide all tables into two groups:
+  - Dimension tables: all tables starting with "dim_"
+  - Fact tables: all tables starting with "fact_"
+
+Retrieve the primary keys of the dimension tables from Block 2, Step 2.
+
+
+
+### Step 2: Check Existing Relationships
+
+Call relationship_operations → list and save all existing relationships internally.
+Categorize them as:
+  - Active: will be replaced in Step 5
+  - Inactive: the user will be informed at the end to decide what happens to them
+
+
+
+### Step 3: Determine Column Overlaps
+
+Perform the following steps for each combination of dimension table and fact table:
+
+  3a. Call column_operations → list for the current fact table.
+
+  3b. Check if the primary key of the dimension table from Block 2 exists as a column name in the fact table. The comparison should consider the following variants (case-insensitive):
+        - Exact match: "KundeID" = "KundeID"
+        - Underscore variant: "KundeID" = "Kunde_ID"
+        - Space variant: "KundeID" = "Kunde ID"
+
+  3c. If a match is found:
+      → Save internally:
+        Dimension: [dim_TableName]
+        Primary Key: [ColumnName]
+        Fact Table: [fact_TableName]
+        Foreign Key: [matching column]
+
+  3d. If no match is found:
+      → Note internally:
+        "No relationship found: [dim_TableName] ↔ [fact_TableName]"
+      → Skip this combination
+
+
+
+### Step 4: Open Transaction
+
+Call transaction_operations → begin.
+
+
+
+### Step 5: Create Relationships
+
+For each match found in Step 3, perform the following steps:
+
+  If an active relationship already exists between these two tables:
+    → Call relationship_operations → delete to remove the existing relationship
+    → Proceed with creating the new one
+
+  Call relationship_operations → create with:
+    - From (1-side):     [dim_TableName][PrimaryKey]
+    - To (Many-side):    [fact_TableName][ForeignKey]
+    - Cardinality:       1:n (One to Many)
+    - Cross Filtering:   Single (from Dimension to Fact)
+    - Status:            Active
+
+
+
+### Step 6: Commit or Rollback
+
+If all relationships in Step 5 were successfully created:
+  → Call transaction_operations → commit
+
+If at least one relationship failed:
+  → Call transaction_operations → rollback
+  → Stop the entire execution
+  → Output which relationship failed
+
+
+
+### Step 7: Report Inactive Relationships
+
+If inactive relationships were found in Step 2:
+  → Show the user the following overview:
+    "The following inactive relationships exist in the model:
+     [Table A] ↔ [Table B]: [Column]
+     Should this relationship be activated, deleted, or kept?"
+  → Wait for user response and execute corresponding relationship_operations
+
+
+
+### Step 8: Date-Table Relationships
+
+If a central date table (e.g., dim_Date) exists in the model, create relationships between the date column and the date columns of the fact tables.
+
+IMPORTANT:
+  - There must be exactly one relationship to the date table per fact table.
+  - No inactive date relationships are allowed.
+
+  8a. For each fact table:
+      i.   Call column_operations → list
+      ii.  Identify all columns with DateTime or Date data types (e.g., OrderDate, ShipDate, DueDate, CreatedDate, etc.)
+      iii. If no date columns exist:
+           → Note internally: "[fact_TableName]: no date columns found"
+           → Skip this fact table
+      iv.  If exactly one date column exists:
+           → This will be linked as the single active relationship
+      v.   If multiple date columns exist:
+           → Call vscode_askQuestions with the following options:
+             Header: "[fact_TableName] - Date Relationship"
+             Question: "Which date column should form the active relationship with the date table?"
+             Options as a clickable list:
+               - [Column1]
+               - [Column2]
+               - [Column3]
+               (etc.)
+           → Wait for user response
+           → The selected column will be created as the single active relationship
+
+  8b. Open transaction:
+      Call transaction_operations → begin.
+
+  8c. Create relationships:
+      For each fact table with a selected date column:
+        i.   Call relationship_operations → list and find all existing relationships between the date table and the current fact table (active or inactive).
+        ii.  Delete all found relationships via relationship_operations → delete, so that at most one relationship remains between the date table and this fact table.
+        iii. Call relationship_operations → create with:
+             - FromTable: [DateTable]
+             - FromColumn: [Date-Column]
+             - FromCardinality: One
+             - ToTable: [fact_TableName]
+             - ToColumn: [selected-date-column]
+             - ToCardinality: Many
+             - IsActive: true
+             - CrossFilteringBehavior: OneDirection
+
+  8d. Commit or Rollback:
+      If all date relationships in Step 8c were successfully created:
+        → Call transaction_operations → commit
+
+      If at least one date relationship failed:
+        → Call transaction_operations → rollback
+        → Stop the entire execution
+        → Output which date relationship failed
+
+
+
+### Step 9: Update Data
+Full Refresh
+
+
+
+### Step 10: Validation
+
+Call relationship_operations → list and check for each created relationship:
+  - Correct cardinality: 1:n ✓
+  - Correct direction: Dimension → Fact Table ✓
+  - Status: Active (for the selected relationships) ✓
+  - Date relationships:
+    - At most one relationship to the date table for each fact table ✓
+    - This relationship is active ✓
+
+
+
+### Step 11: Final Overview
+
+Output a complete overview:
+
+  Created relationships (Fact → Dimension):
+
+  | Dimension    | Primary Key | Fact Table  | Foreign Key | Status |
+  |--------------|-------------|-------------|-------------|--------|
+  | dim_Kunde    | KundeID     | fact_Umsatz | KundeID     | ✓      |
+
+  Date-Table relationships:
+
+  | Fact Table   | Date Column (active) | Source in Date Table | Status    |
+  |--------------|----------------------|----------------------|-----------|
+  | fact_Sales   | OrderDate            | Date                 | ✓ (active)|
+  | fact_PurchaseOrders | OrderDate      | Date                 | ✓ (active)|
+
+  Unconnected combinations:
+
+  | Dimension    | Fact Table  | Reason                     |
+  |--------------|-------------|----------------------------|
+  | dim_Produkt  | fact_Umsatz | No column overlap detected |
+
+
+
+## BLOCK 3 COMPLETED
+
+Only proceed to Block 4 if commit was successful.
+
+
+
+## BLOCK 4: Strictly Deactivate Auto-Sum (Do Not Summarize)
+
+## Tools: table_operations, column_operations, transaction_operations
+
+## Prerequisite: Block 3 must be successfully completed
+
+
+
+### Step 1: List All Tables
+
+Call table_operations → list and create a complete list of all tables in the model.
+
+
+
+### Step 2: List All Columns per Table
+
+For each table from Step 1, perform the following:
+  2a. Call column_operations → list for the current table.
+  2b. Save all found column names internally as a processing list.
+
+IMPORTANT:
+  - No pre-check on existing SummarizeBy status is performed.
+  - All columns are processed unconditionally.
+  - There are no exceptions.
+
+
+
+### Step 3: Open Transaction
+
+Call transaction_operations → begin.
+
+
+
+### Step 4: Deactivate Auto-Sum for All Columns
+
+For each table and for each column from the processing list, execute:
+  → Call column_operations → update with:
+    - TableName: [TableName]
+    - Name: [ColumnName]
+    - SummarizeBy: None
+
+This unconditionally sets "Do Not Summarize" for all columns.
+  The updates are executed strictly for ALL columns without conditions or prior checks.
+
+
+
+### Step 5: Commit or Rollback
+
+If all updates in Step 4 were successful:
+  → Call transaction_operations → commit
+
+If at least one update failed:
+  → Call transaction_operations → rollback
+  → Stop the entire execution
+  → Output which table/column failed
+
+
+
+### Step 6: Update Data
+Full Refresh
+
+
+
+### Step 7: Validation
+
+Perform validation exclusively through operations:
+  7a. Call table_operations → list and determine all tables.
+  7b. For each table, call column_operations → list to collect all column names.
+  7c. Call column_operations → get for ALL collected columns and explicitly check the SummarizeBy field.
+  7d. Validation rule:
+      Every single column must have SummarizeBy = None.
+      If even one column deviates from this, the validation is considered failed.
+
+Output a brief overview:
+  - Tables checked: X
+  - Columns processed (update calls): X
+  - Columns with SummarizeBy = None after execution: X
+  - Columns with SummarizeBy ≠ None: X
+  - Errors: X
+
+
+
+## BLOCK 4 COMPLETED
+
+
+
+## BLOCK 5: Create Measures for Fact Tables
+
+## Tools: table_operations, column_operations, measure_operations, transaction_operations
+
+## Prerequisite: Block 4 must be successfully completed
+
+
+
+### Step 1: List All Fact Tables
+
+Call table_operations → list and filter for all tables whose names begin with "fact_".
+
+
+
+### Step 2: Column Selection per Fact Table
+
+Perform the following steps for each fact table sequentially:
+
+  2a. Call column_operations → list for the current table.
+
+  2b. Identify all candidates for "Summe Total" (Sum Total):
+      Columns whose names contain one of the following terms (case-insensitive):
+        "total", "amount", "betrag", "summe", "due", "revenue", "sales", "value"
+
+  2c. Identify all candidates for "Summe Quantity" (Sum Quantity):
+      Columns whose names contain one of the following terms (case-insensitive):
+        "qty", "quantity", "menge", "anzahl", "count", "units"
+
+  2d. Call vscode_askQuestions with two questions:
+
+      Question 1 (Summe Total):
+        Header: "[fact_TableName] – Column for Summe Total"
+        Question: "Which column should be used for the 'Summe Total' measure?"
+        Options: all identified candidates from 2b + "None – Skip measure"
+
+      Question 2 (Summe Quantity):
+        Header: "[fact_TableName] – Column for Summe Quantity"
+        Question: "Which column should be used for the 'Summe Quantity' measure?"
+        Options: all identified candidates from 2c + "None – Skip measure"
+
+      Wait for user response before moving to the next table.
+
+  2e. Store the selection internally as:
+      [TableName] → { totalColumn: [selected column or null], qtyColumn: [selected column or null] }
+
+
+
+### Step 3: Open Transaction
+
+Call transaction_operations → begin.
+
+
+
+### Step 4: Create Measures
+
+For each fact table from Step 2, execute the following:
+
+  4a. Measure "Rowcount":
+      Call measure_operations → create with:
+        - TableName:    [fact_TableName]
+        - Name:         "Rowcount"
+        - Expression:   COUNTROWS([fact_TableName])
+        - FormatString: "0"
+
+  4b. Measure "Summe Total" (only if a column was selected in Step 2):
+      Call measure_operations → create with:
+        - TableName:    [fact_TableName]
+        - Name:         "Summe Total"
+        - Expression:   SUM([fact_TableName][[totalColumn]])
+        - FormatString: "#,0.00"
+
+  4c. Measure "Summe Quantity" (only if a column was selected in Step 2):
+      Call measure_operations → create with:
+        - TableName:    [fact_TableName]
+        - Name:         "Summe Quantity"
+        - Expression:   SUM([fact_TableName][[qtyColumn]])
+        - FormatString: "#,0"
+
+  If a measure with the same name already exists for a table:
+    → Call measure_operations → update instead of create
+
+
+
+### Step 5: Commit or Rollback
+
+If all measure creations in Step 4 were successful:
+  → Call transaction_operations → commit
+
+If at least one creation failed:
+  → Call transaction_operations → rollback
+  → Stop the entire execution
+  → Output which table/measure failed
+
+
+
+### Step 6: Update Data
+Full Refresh
+
+
+
+### Step 7: Validation
+
+Call measure_operations → list and check for each fact table:
+  - Measure "Rowcount" exists ✓
+  - Measure "Summe Total" exists (if column was selected) ✓
+  - Measure "Summe Quantity" exists (if column was selected) ✓
+
+Output a brief overview:
+
+  | Fact Table           | Rowcount | Summe Total       | Summe Quantity   |
+  |----------------------|----------|-------------------|------------------|
+  | fact_X               | ✓        | ✓ (TotalDue)      | ✓ (OrderQty)     |
+  | fact_Y               | ✓        | skipped           | ✓ (Qty)          |
+
+
+
+## BLOCK 5 COMPLETED
