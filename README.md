@@ -11,7 +11,7 @@ I operate full-time within the enterprise **Microsoft Data Ecosystem** (SQL, Pow
 | Domain | Professional Enterprise Focus (Microsoft) | Experimental & Sandbox Focus |
 | :--- | :--- | :--- |
 | **Data Platform & Fabric** | Microsoft Fabric (Administration, Mirroring, Shortcuts), Lakehouses, Warehouses | Databricks (Lakehouse Architecture, Delta Lake) |
-| **Architecture & SQL** | T-SQL, Star Schemas, Medallion Architecture, SCD Type 2 | Spark SQL |
+| **Architecture & SQL** | T-SQL, Star Schemas, Medallion Architecture, SCD Types | Spark SQL |
 | **BI & Enterprise Analytics** | Power BI Desktop/Service, DAX Studio, Tabular Editor, Reusable Templates | Google Sheets |
 | **AI, Automation & Engineering** | Python (Pandas), Power Automate, GitHub Copilot | Google AI Tools (Gemini Pro Prompting, NotebookLM Context Structuring) |
 
