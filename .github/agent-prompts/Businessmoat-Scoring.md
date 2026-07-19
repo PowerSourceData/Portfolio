@@ -39,7 +39,7 @@ Bestimme die kinetische Stoßrichtung des Burggrabens im Vergleich zum Vorjahr o
 
 ### 🟩 MANDATORY STEP 1 — SYSTEM-ROLLE & HIERARCHIE
 * **Rollen-Zuordnung:** Ordne das Unternehmen einer klaren Rolle zu (z. B. *"SR-1 Global Choke Point"*).
-* **Core-Eligible Check:** Validiere mathematisch: Ist $S1 \ge 4$ UND $S2 \le \text{Level 3}$?
+* **Core-Eligible Check:** Validiere mathematisch: Ist `S1 ≥ 4` UND `S2 ≤ Level 3`?
 
 ---
 
@@ -53,8 +53,8 @@ Bestimme die kinetische Stoßrichtung des Burggrabens im Vergleich zum Vorjahr o
 
 ### 🟩 MANDATORY STEP 3 — SCORING & KLASSIFIZIERUNG
 Berechne die folgenden Kennzahlen (Format: `0,00` mit Komma):
-* **Aggregated Moat Score:** $$(S1 \times 0,6) + (S_{\text{Avg}} \times 0,4)$$ *(wobei $S_{\text{Avg}}$ der Durchschnitt von S2 bis S5 ist)*
-* **Decay-Adjusted Score:** $$\text{Aggregated} - (S6 \times 0,25)$$
+* **Aggregated Moat Score:** `(S1 × 0,6) + (S_Avg × 0,4)` (wobei `S_Avg` der Durchschnitt von S2 bis S5 ist)
+* **Decay-Adjusted Score:** `Aggregated - (S6 × 0,25)`
 * **Klassifizierung:** Ordne exakt eine Kategorie zu: `Core-eligible`, `Pre-Core`, `Satellite-only` oder `Not suitable`.
 
 ---

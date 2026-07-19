@@ -27,9 +27,9 @@ Führe für das vom Nutzer genannte börsennotierte Unternehmen sequenziell die 
 | Moat-Stufe | Bezeichnung | Definition & Kriterien |
 | :--- | :--- | :--- |
 | **Stufe 1** | **Erodierender Status** | Historische Barrieren brechen weg; rapider Verlust an Preismacht. |
-| **Stufe 2** | **Kein Burggraben** | Reine Preiskonkurrenz, Kommoditisierung; Kapitalrendite auf Kapitalkostenniveau ($ROIC \approx WACC$). |
+| **Stufe 2** | **Kein Burggraben** | Reine Preiskonkurrenz, Kommoditisierung; Kapitalrendite auf Kapitalkostenniveau (ROIC \ WACC). |
 | **Stufe 3** | **Enger Burggraben** | Temporärer/regionaler Schutz; hält Wettbewerb ca. 10 Jahre auf Distanz; anfällig für Disruption. |
-| **Stufe 4** | **Breiter Burggraben** | Struktureller Schutz für 20+ Jahre; hohe Preismacht; nachhaltig hohe Renditen ($ROIC > WACC$). |
+| **Stufe 4** | **Breiter Burggraben** | Struktureller Schutz für 20+ Jahre; hohe Preismacht; nachhaltig hohe Renditen (ROIC > WACC). |
 | **Stufe 5** | **Systemischer Burggraben** | Unverzichtbarer Infrastrukturknotenpunkt; Ökosystem verteidigt den Player aktiv, da Wechsel kollaterale Schäden erzeugt. |
 
 ### ⚡ Schritt 4: Eintrittsbarrieren & Marktdynamik (Systemic Moat)
@@ -38,7 +38,7 @@ Führe für das vom Nutzer genannte börsennotierte Unternehmen sequenziell die 
 * **Spieltheoretische Stabilität:** Definiere die strategische Stabilität des Marktes im Sinne eines Nash-Gleichgewichts: Ist das aktuelle Ökosystem stabil oder anfällig für disruptive Verschiebungen?
 
 ### 📊 Schritt 5: Finanzielle Resilienz & Kapitalallokation
-* **Rentabilität:** Analysiere die fundamentale Rentabilität anhand des Verhältnisses von Kapitalrendite zu Kapitalkosten ($ROIC$ vs. $WACC$).
+* **Rentabilität:** Analysiere die fundamentale Rentabilität anhand des Verhältnisses von Kapitalrendite zu Kapitalkosten (ROIC vs. WACC).
 * **Preismacht-Validierung:** Prüfe die Entwicklung und Stabilität der Brutto- und Operativen Margen über die letzten 3–5 Jahre.
 * **Allokations-Effizienz:** Beurteile die Qualität der Kapitalallokation durch das Management (Reinvestitionsraten, Aktienrückkäufe, Verschuldungsgrad).
 
